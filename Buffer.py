@@ -10,17 +10,16 @@ from discord import Webhook, RequestsWebhookAdapter
 from web3 import Web3
 import os
 
-from dotenv import load_dotenv
-load_dotenv()
-
-infura_project_id = os.getenv('INFURA_PROJECT_ID')
-w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/{}'.format(infura_project_id)))
+# from dotenv import load_dotenv
+# load_dotenv()
+# infura_project_id = os.getenv('INFURA_PROJECT_ID')
+# w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/{}'.format(infura_project_id)))
 
 API_KEY = 'AIZ32QT1EWEKQN27W2IGY2VVGWP317MBEZ'
 
 def main():
     client = ClientEtherScan(API_KEY = API_KEY)
-    interval = 20
+    interval = 300
 
     # Some random address or list of addressess
     accounts = [
@@ -41,14 +40,14 @@ def main():
             address='0x9e67d018488ad636b538e4158e9e7577f2ecac12')]
 
     # now = int(time.time())
-    now = int(time.time()) - 600
+    now = int(time.time()) - 3600
     past_block = client.get_block_number_by_timestamp(timestamp = now, closest_value = 'before')['result']
 
     while True:
         try:
             now = int(time.time())
             current_block = client.get_block_number_by_timestamp(timestamp = now, closest_value = 'before')['result']
-
+            print('Current block is {}'.format(current_block))
             for account in accounts:
                 address = account['address']
                 result = client.get_list_of_transactions(address = address, startblock = past_block, endblock = 99999999)
@@ -56,11 +55,11 @@ def main():
                 for trans in transactions:
                     msg = ''
                     if trans['from'] == address:
-                        msg = 'New tx from {} at {}\n'.format(account['name'], datetime.fromtimestamp(int(trans['timeStamp'])))
-                        msg += 'Sent {} ETH to {}'.format(Web3.fromWei(int(trans['value']), 'ether'), trans['to'])
+                        msg = ':detective: :eyes: New tx from {} at {}\n'.format(account['name'], datetime.fromtimestamp(int(trans['timeStamp'])))
+                        msg += 'Sent {} ETH to {}\n'.format(Web3.fromWei(int(trans['value']), 'ether'), trans['to'])
                     else:
-                        msg = 'New tx to {} at {}\n'.format(account['name'], datetime.fromtimestamp(int(trans['timeStamp'])))
-                        msg += 'Received {} ETH from {}'.format(Web3.fromWei(int(trans['value']), 'ether'), trans['from'])
+                        msg = ':detective: :eyes: New tx to {} at {}\n'.format(account['name'], datetime.fromtimestamp(int(trans['timeStamp'])))
+                        msg += 'Received {} ETH from {}\n'.format(Web3.fromWei(int(trans['value']), 'ether'), trans['from'])
 
                     print(msg)
                     discord_webhook.send(msg)
