@@ -17,6 +17,27 @@ import os
 
 API_KEY = 'AIZ32QT1EWEKQN27W2IGY2VVGWP317MBEZ'
 
+def detect_transfers(client, address, startblock, endblock):
+    transactions = client.get_list_of_ERC20_toker_transfer_by_adress(address = address, startblock = startblock, endblock = endblock)['result']
+
+    all_transactions = dict()
+
+    for tsf1 in transactions:
+        for tsf2 in transactions:
+            if ((tsf1 != tsf2) and (tsf1['hash'] == tsf2['hash'])):
+
+                hash =tsf1['hash']
+
+                if hash not in all_transactions.keys():
+                    all_transactions[hash] = []
+
+                if tsf1 not in all_transactions[hash]:
+                    all_transactions[hash].append(tsf1)
+
+                if tsf2 not in all_transactions[hash]:
+                    all_transactions[hash].append(tsf2)
+    return all_transactions
+
 def main():
     client = ClientEtherScan(API_KEY = API_KEY)
     interval = 300
@@ -24,19 +45,19 @@ def main():
     # Some random address or list of addressess
     accounts = [
         # dict(
-        #     name='uniswap', 
+        #     name='uniswap',
         #     address='0x1f9840a85d5af5bf1d1762f925bdaddc4201f984'),
         dict(
-            name='Shroom Daddy', 
-            address='0x28ed88c5f72c4e6dfc704f4cc71a4b7756bc4dbc'),
+            name='Shroom Daddy',
+            address='0xa9438f98df857b49afe08f467bc602a345c2995d'),
         dict(
-            name='Austin Griffith', 
+            name='Austin Griffith',
             address='0x34aa3f359a9d614239015126635ce7732c18fdf3'),
         dict(
-            name='Alex Becker', 
+            name='Alex Becker',
             address='0xae4d837caa0c53579f8a156633355df5058b02f3'),
         dict(
-            name='Mr. Beast', 
+            name='Mr. Beast',
             address='0x9e67d018488ad636b538e4158e9e7577f2ecac12')]
 
     # now = int(time.time())
@@ -61,11 +82,15 @@ def main():
                         msg = ':detective: :eyes: New tx to {} at {}\n'.format(account['name'], datetime.fromtimestamp(int(trans['timeStamp'])))
                         msg += 'Received {} ETH from {}\n'.format(Web3.fromWei(int(trans['value']), 'ether'), trans['from'])
 
+
+
                     print(msg)
                     discord_webhook.send(msg)
 
+                transfers = detect_transfers(client = client, address = address, startblock = past_block, endblock = 99999999)
+                print(json.dumps(transfers, indent = 2))
                     # print(json.dumps(transactions, indent = 2))
-        
+
             # transactions = client.get_list_of_transactions(address = address, startblock = past_block, endblock = current_block)
             # for trans in transactions['result']:
             #     print(json.dumps(trans, indent = 2))
